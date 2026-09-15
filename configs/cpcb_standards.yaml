@@ -1,0 +1,114 @@
+# CPCB National Air Quality Index (NAQI) Standards
+# Source: Central Pollution Control Board, India
+
+cpcb_aqi_breakpoints:
+  - category: "Good"
+    range: [0, 50]
+    color: "Green"
+    health_impact: "Minimal health impact; safe for outdoor activity."
+    advisory: "No restrictions. Enjoy outdoor activities safely."
+
+  - category: "Satisfactory"
+    range: [51, 100]
+    color: "Light Green"
+    health_impact: "May cause minor breathing discomfort to sensitive people."
+    advisory: "Reduce intense outdoor activity if you have respiratory sensitivities."
+
+  - category: "Moderately Polluted"
+    range: [101, 200]
+    color: "Yellow"
+    health_impact: "Discomfort to people with lung/heart disease, children, and older adults."
+    advisory: "Reduce prolonged exertion. Keep windows closed if dust is suspected."
+
+  - category: "Poor"
+    range: [201, 300]
+    color: "Orange"
+    health_impact: "Breathing discomfort to most people on prolonged exposure."
+    advisory: "Avoid outdoor activities. Use N95 masks if going outside is necessary."
+
+  - category: "Very Poor"
+    range: [301, 400]
+    color: "Red"
+    health_impact: "Respiratory illness on prolonged exposure; severe impact on sensitive groups."
+    advisory: "Stay indoors with windows closed. Use air purifiers if available."
+
+  - category: "Severe"
+    range: [401, 500]
+    color: "Dark Red"
+    health_impact: "Affects healthy people and seriously impacts those with pre-existing conditions."
+    advisory: "Remain indoors. Use high-efficiency air filters. Seek medical attention if symptoms appear."
+
+# Pollutant-specific sub-index breakpoints (µg/m³ except CO in mg/m³)
+pollutant_breakpoints:
+  PM2.5:
+    - [0, 30, "Good"]
+    - [31, 60, "Satisfactory"]
+    - [61, 90, "Moderately Polluted"]
+    - [91, 120, "Poor"]
+    - [121, 250, "Very Poor"]
+    - [251, 300, "Severe"]
+
+  PM10:
+    - [0, 50, "Good"]
+    - [51, 100, "Satisfactory"]
+    - [101, 250, "Moderately Polluted"]
+    - [251, 350, "Poor"]
+    - [351, 430, "Very Poor"]
+    - [431, 500, "Severe"]
+
+  NO2:
+    - [0, 40, "Good"]
+    - [41, 80, "Satisfactory"]
+    - [81, 180, "Moderately Polluted"]
+    - [181, 280, "Poor"]
+    - [281, 380, "Very Poor"]
+    - [381, 600, "Severe"]
+
+  SO2:
+    - [0, 40, "Good"]
+    - [41, 80, "Satisfactory"]
+    - [81, 160, "Moderately Polluted"]
+    - [161, 380, "Poor"]
+    - [381, 800, "Very Poor"]
+    - [801, 1000, "Severe"]
+
+  CO:
+    - [0, 1, "Good"]
+    - [1.1, 4, "Satisfactory"]
+    - [4.1, 10, "Moderately Polluted"]
+    - [10.1, 17, "Poor"]
+    - [17.1, 20, "Very Poor"]
+    - [20.1, 25, "Severe"]
+
+  O3:
+    - [0, 50, "Good"]
+    - [51, 100, "Satisfactory"]
+    - [101, 168, "Moderately Polluted"]
+    - [169, 204, "Poor"]
+    - [205, 704, "Very Poor"]
+    - [705, 800, "Severe"]
+
+# Demographic-specific risk modifiers
+demographic_modifiers:
+  Children:
+    risk_multiplier: 1.3
+    advice: "Children should limit outdoor activities and ensure proper ventilation indoors."
+  Elderly:
+    risk_multiplier: 1.4
+    advice: "Elderly individuals should avoid prolonged outdoor exposure and keep medications ready."
+  Sensitive:
+    risk_multiplier: 1.5
+    advice: "Individuals with respiratory conditions should stay indoors and use air purifiers."
+  Asthma:
+    risk_multiplier: 1.6
+    advice: "Asthma patients should carry inhalers and avoid outdoor exercise. Keep windows closed."
+  General:
+    risk_multiplier: 1.0
+    advice: ""
+
+# Weather context thresholds
+weather_thresholds:
+  high_temperature: 35      # °C
+  high_humidity: 70         # %
+  low_wind_speed: 5         # km/h
+  rainfall_improvement: 0   # mm (any rainfall helps)

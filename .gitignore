@@ -1,0 +1,69 @@
+# Data
+data/raw/*.csv
+data/processed/*.json
+data/processed/*.parquet
+*.parquet
+
+# Models (large files - use Git LFS or DVC)
+models/**/*.h5
+models/**/*.pkl
+models/**/*.pt
+models/**/*.bin
+models/**/*.joblib
+*.h5
+*.pkl
+*.pt
+
+# Outputs
+outputs/*.png
+outputs/*.jpg
+outputs/*.pdf
+*.png
+*.jpg
+
+# Environment
+.env
+venv/
+conda-env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.ipynb_checkpoints/
+*.ipynb
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Distribution
+dist/
+build/
+*.egg-info/
+
+# Testing
+.coverage
+.pytest_cache/
+htmlcov/
+
+# Type checking
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Streamlit
+.streamlit/secrets.toml
