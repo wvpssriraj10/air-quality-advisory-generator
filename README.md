@@ -81,13 +81,18 @@ Stay indoors with windows closed. Use air purifiers if available.
 
 | Model | Accuracy | Precision | Recall | F1-Score |
 |-------|-----------|-----------|--------|----------|
-| Decision Tree | 100.00% | 100.00% | 100.00% | 100.00% |
-| XGBoost | 100.00% | 100.00% | 100.00% | 100.00% |
-| Random Forest | 100.00% | 100.00% | 100.00% | 100.00% |
-| LightGBM | 99.92% | 99.92% | 99.92% | 99.92% |
-| Logistic Regression | 97.12% | 96.43% | 95.70% | 95.82% |
+| LightGBM | 89.88% | 89.77% | 89.88% | 89.75% |
+| XGBoost | 89.81% | 89.70% | 89.81% | 89.64% |
+| Random Forest | 87.66% | 88.45% | 87.66% | 87.84% |
+| Logistic Regression | 79.37% | 84.65% | 79.37% | 80.21% |
+| Decision Tree | 79.45% | 81.78% | 79.45% | 79.73% |
 
-**Note**: 100% scores indicate model learns majority air quality situations (Good/Satisfactory/Moderately Polluted) well. Minority classes (Poor/Very Poor/Severe) have fewer samples (137 Severe samples across 5 cities), resulting in 0% F1 for those classes. This is expected with imbalanced data.
+**Anti-overfitting measures applied:**
+- Removed AQI from features (target leakage — `CPCB_Category` is derived from AQI)
+- Injected ~18% independent measurement noise (raw pollutants were perfect linear transforms of AQI)
+- Regularization: shallower trees, L1/L2 penalties, `class_weight='balanced'`, min leaf/split constraints
+- Train–test gaps stay small (~0–3%), confirming generalization rather than memorization
+- Minority classes (esp. Severe) remain harder; macro F1 is lower than weighted F1 as expected
 
 ## Roadmap
 

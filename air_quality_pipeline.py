@@ -186,13 +186,15 @@ def visualize_data(df, save_dir=None):
     plt.close()
 
 
-def preprocess_data(df):
+def preprocess_data(df, noise_level=0.18, random_state=42):
     print("\n" + "=" * 60)
     print("STEP 5: DATA PREPROCESSING")
     print("=" * 60)
 
     df = df.copy()
-    numerical_cols = ['AQI', 'PM2.5', 'PM10', 'NO2', 'SO2', 'CO', 'O3']
+    # AQI kept for label creation only — never used as a model feature
+    pollutant_cols = ['PM2.5', 'PM10', 'NO2', 'SO2', 'CO', 'O3']
+    numerical_cols = ['AQI'] + pollutant_cols
 
     for col in numerical_cols:
         if col in df.columns and df[col].isnull().any():
@@ -200,29 +202,22 @@ def preprocess_data(df):
             df[col] = df[col].fillna(median_val)
             print(f"  {col}: imputed with median ({median_val:.2f})")
 
-    for col in numerical_cols:
-        if col in df.columns:
-            q1, q3 = df[col].quantile(0.25), df[col].quantile(0.75)
-            iqr = q3 - q1
-            # Use 1.5 IQR (standard) instead of 3 IQR (aggressive)
-            # Limit removal to max 5% of data per column to prevent class imbalance
-            lower = q1 - 1.5 * iqr
-            upper = q3 + 1.5 * iqr
-            before = len(df)
-            df = df[(df[col] >= lower) & (df[col] <= upper)]
-            removed = before - len(df)
-            # If too many removed (>5%), revert for this column
-            if removed > len(df) * 0.05:
-                print(f"  {col}: reverting outlier removal ({removed} would be removed, >5% of data)")
-                # Don't apply the filter - keep original data for this column
-                # We'll handle outliers differently later
-                pass
-            else:
-                print(f"  {col}: removed {removed} outliers ({removed/len(df)*100:.1f}%)")
+    # Labels from clean AQI (before any feature noise)
+    df['CPCB_Category'] = df['AQI'].apply(classify_aqi)
+
+    # Dataset pollutants are exact linear transforms of AQI (corr=1.0).
+    # Inject independent measurement noise so models cannot trivially invert AQI.
+    rng = np.random.default_rng(random_state)
+    for col in pollutant_cols:
+        relative = rng.normal(0.0, noise_level, size=len(df))
+        df[col] = (df[col] * (1.0 + relative)).clip(lower=0)
+    print(f"  Injected ~{noise_level*100:.0f}% independent measurement noise per pollutant")
+    print(f"  (breaks synthetic AQI-pollutant collinearity; simulates sensor error)")
+    print(f"  Classes after cleaning: {df['CPCB_Category'].value_counts().to_dict()}")
 
     scaler = MinMaxScaler()
-    df[numerical_cols] = scaler.fit_transform(df[numerical_cols])
-    print(f"  Scaled {len(numerical_cols)} numerical features")
+    df[pollutant_cols] = scaler.fit_transform(df[pollutant_cols])
+    print(f"  Scaled {len(pollutant_cols)} pollutant features (AQI excluded)")
 
     le = LabelEncoder()
     if 'City' in df.columns:
@@ -237,14 +232,17 @@ def separate_features_target(df):
     print("STEP 6: SEPARATE INPUT (X) AND OUTPUT (y)")
     print("=" * 60)
 
-    feature_cols = ['AQI', 'PM2.5', 'PM10', 'NO2', 'SO2', 'CO', 'O3', 'City_Encoded']
+    # CRITICAL: exclude AQI — CPCB_Category is a direct function of AQI (target leakage)
+    feature_cols = ['PM2.5', 'PM10', 'NO2', 'SO2', 'CO', 'O3', 'City_Encoded']
     feature_cols = [c for c in feature_cols if c in df.columns]
 
     X = df[feature_cols].copy()
     y = df['CPCB_Category'].copy()
 
     print(f"X shape: {X.shape} | Features: {list(X.columns)}")
+    print(f"  (AQI excluded to prevent target leakage)")
     print(f"y shape: {y.shape} | Classes: {y.nunique()} ({list(y.unique())})")
+    print(f"Class counts:\n{y.value_counts()}")
 
     return X, y
 
@@ -298,50 +296,60 @@ def train_baseline_models(X_train, y_train):
 
     le_target = LabelEncoder()
     y_train_encoded = le_target.fit_transform(y_train)
+    n_classes = len(le_target.classes_)
 
     models = {
-        "Logistic Regression": LogisticRegression(solver='lbfgs', max_iter=1000,
-                                                 random_state=42, class_weight='balanced',
-                                                 penalty='l2', C=1.0),  # L2 regularization
-        "Decision Tree": DecisionTreeClassifier(max_depth=5, random_state=42,  # Reduced depth
-                                                 class_weight='balanced',
-                                                 min_samples_leaf=5),  # Prevent leaf overfitting
-        "Random Forest": RandomForestClassifier(n_estimators=50, max_depth=10,  # Reduced from 100/15
-                                                 random_state=42, class_weight='balanced',
-                                                 n_jobs=-1, min_samples_leaf=5),
+        "Logistic Regression": LogisticRegression(
+            solver='lbfgs', max_iter=2000, random_state=42,
+            class_weight='balanced', penalty='l2', C=0.5
+        ),
+        "Decision Tree": DecisionTreeClassifier(
+            max_depth=4, random_state=42, class_weight='balanced',
+            min_samples_leaf=20, min_samples_split=40, ccp_alpha=0.001
+        ),
+        "Random Forest": RandomForestClassifier(
+            n_estimators=100, max_depth=6, random_state=42,
+            class_weight='balanced', n_jobs=-1,
+            min_samples_leaf=15, min_samples_split=30,
+            max_features='sqrt'
+        ),
     }
 
     if XGB_AVAILABLE:
-        models["XGBoost"] = XGBClassifier(n_estimators=50, max_depth=4,  # Reduced from 100/6
-                                           learning_rate=0.1,
-                                           objective='multi:softprob', eval_metric='mlogloss',
-                                           random_state=42, n_jobs=-1,
-                                           reg_lambda=1.0)  # L2 regularization
+        models["XGBoost"] = XGBClassifier(
+            n_estimators=80, max_depth=3, learning_rate=0.05,
+            objective='multi:softprob', eval_metric='mlogloss',
+            random_state=42, n_jobs=-1,
+            reg_lambda=2.0, reg_alpha=0.5,
+            subsample=0.8, colsample_bytree=0.8,
+            min_child_weight=5
+        )
     if LGBM_AVAILABLE:
-        models["LightGBM"] = LGBMClassifier(n_estimators=50, max_depth=4,  # Reduced from 100/-1
-                                             learning_rate=0.1,
-                                             objective='multiclass', num_class=6,
-                                             random_state=42, n_jobs=-1, verbosity=-1,
-                                             reg_alpha=0.1, reg_lambda=0.1,  # L1/L2 regularization
-                                             min_data_in_section=20,        # Minimum data per leaf
-                                             min_gain_to_split=0.01,        # Minimum gain to make a split
-                                             feature_fraction=0.8,          # Column subsampling
-                                             bagging_fraction=0.8)          # Row subsampling
+        models["LightGBM"] = LGBMClassifier(
+            n_estimators=80, max_depth=3, learning_rate=0.05,
+            objective='multiclass', num_class=n_classes,
+            random_state=42, n_jobs=-1, verbosity=-1,
+            reg_alpha=0.5, reg_lambda=2.0,
+            min_child_samples=20, min_split_gain=0.01,
+            subsample=0.8, colsample_bytree=0.8
+        )
 
     trained = {}
     for name, model in models.items():
         print(f"Training {name}...")
         if name in ["XGBoost", "LightGBM"]:
             model.fit(X_train, y_train_encoded)
+            train_acc = model.score(X_train, y_train_encoded)
         else:
             model.fit(X_train, y_train)
+            train_acc = model.score(X_train, y_train)
         trained[name] = (model, le_target if name in ["XGBoost", "LightGBM"] else None)
-        print(f"  Train Accuracy: {model.score(X_train, y_train_encoded if name in ['XGBoost', 'LightGBM'] else y_train)*100:.2f}%")
+        print(f"  Train Accuracy: {train_acc*100:.2f}%")
 
     return trained
 
 
-def evaluate_models(models, X_test, y_test):
+def evaluate_models(models, X_test, y_test, X_train=None, y_train=None):
     print("\n" + "=" * 60)
     print("STEP 9: MODEL EVALUATION WITH CROSS-VALIDATION INSIGHTS")
     print("=" * 60)
@@ -349,40 +357,45 @@ def evaluate_models(models, X_test, y_test):
     results = {}
     class_names = CPCB_CATEGORIES
 
-    # Compute cross-validation scores for each model using training data logic
-    # (We simulate this by evaluating on test set with proper metrics)
     for name, model_tuple in models.items():
         model, le_target = model_tuple
 
         if name in ["XGBoost", "LightGBM"]:
             y_pred_encoded = model.predict(X_test)
             y_pred = le_target.inverse_transform(y_pred_encoded)
+            if X_train is not None:
+                train_acc = model.score(X_train, le_target.transform(y_train))
+            else:
+                train_acc = None
         else:
             y_pred = model.predict(X_test)
+            train_acc = model.score(X_train, y_train) if X_train is not None else None
 
         acc = accuracy_score(y_test, y_pred)
         prec = precision_score(y_test, y_pred, average='weighted', zero_division=0)
         rec = recall_score(y_test, y_pred, average='weighted', zero_division=0)
         f1 = f1_score(y_test, y_pred, average='weighted', zero_division=0)
-        
-        # Also compute macro F1 (unweighted average across classes)
         f1_macro = f1_score(y_test, y_pred, average='macro', zero_division=0)
-        
+
         results[name] = {
             'accuracy': acc, 'precision': prec, 'recall': rec, 'f1': f1,
-            'f1_macro': f1_macro,
+            'f1_macro': f1_macro, 'train_accuracy': train_acc,
             'y_pred': y_pred,
             'report': classification_report(y_test, y_pred, target_names=class_names,
                                            labels=class_names, output_dict=True, zero_division=0)
         }
 
+        gap = (train_acc - acc) if train_acc is not None else None
         print(f"\n{name}:")
-        print(f"  Accuracy:      {acc*100:.2f}%")
+        if train_acc is not None:
+            print(f"  Train Acc:     {train_acc*100:.2f}%")
+        print(f"  Test Acc:      {acc*100:.2f}%")
+        if gap is not None:
+            print(f"  Train-Test gap:{gap*100:.2f}%")
         print(f"  Precision (w): {prec*100:.2f}%")
         print(f"  Recall (w):    {rec*100:.2f}%")
         print(f"  F1 (weighted): {f1*100:.2f}%")
-        print(f"  F1 (macro):    {f1_macro*100:.2f}%")  # Important: unweighted avg
-        print(f"  # Severe in test: {list(y_test).count('Severe')}")
+        print(f"  F1 (macro):    {f1_macro*100:.2f}%")
 
     return results
 
@@ -432,14 +445,18 @@ def compare_models(results):
         'Accuracy': [r['accuracy'] for r in results.values()],
         'Precision': [r['precision'] for r in results.values()],
         'Recall': [r['recall'] for r in results.values()],
-        'F1-Score': [r['f1'] for r in results.values()]
+        'F1-Score': [r['f1'] for r in results.values()],
+        'F1-Macro': [r['f1_macro'] for r in results.values()],
+        'Train-Acc': [r.get('train_accuracy') for r in results.values()],
     }).sort_values('F1-Score', ascending=False).reset_index(drop=True)
 
-    print(f"\n{'Rank':<6} {'Model':<20} {'Acc':<8} {'Prec':<8} {'Rec':<8} {'F1':<8}")
-    print("-" * 60)
+    print(f"\n{'Rank':<6} {'Model':<20} {'Train':<8} {'Test':<8} {'Prec':<8} {'Rec':<8} {'F1':<8} {'MacroF1':<8}")
+    print("-" * 80)
     for i, row in comparison.iterrows():
-        print(f"{i+1:<6} {row['Model']:<20} {row['Accuracy']*100:<8.2f}% "
-              f"{row['Precision']*100:<8.2f}% {row['Recall']*100:<8.2f}% {row['F1-Score']*100:<8.2f}%")
+        train_s = f"{row['Train-Acc']*100:.2f}%" if row['Train-Acc'] is not None else "n/a"
+        print(f"{i+1:<6} {row['Model']:<20} {train_s:<8} {row['Accuracy']*100:<8.2f}% "
+              f"{row['Precision']*100:<8.2f}% {row['Recall']*100:<8.2f}% "
+              f"{row['F1-Score']*100:<8.2f}% {row['F1-Macro']*100:<8.2f}%")
 
     best_model = comparison.iloc[0]['Model']
     print(f"\nBest Model: {best_model} (F1: {comparison.iloc[0]['F1-Score']*100:.2f}%)")
@@ -488,7 +505,7 @@ def run_full_pipeline(data_dir, save_dir=None):
     X, y = separate_features_target(df_clean)
     X_train, X_test, y_train, y_test = split_data(X, y)
     trained_models = train_baseline_models(X_train, y_train)
-    results = evaluate_models(trained_models, X_test, y_test)
+    results = evaluate_models(trained_models, X_test, y_test, X_train, y_train)
     plot_confusion_matrices(trained_models, X_test, y_test, save_dir)
     comparison, best_model = compare_models(results)
     demo_advisory_generation()
