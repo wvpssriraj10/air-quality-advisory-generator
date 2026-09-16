@@ -11,6 +11,7 @@ An NLP-based system that converts real-time Indian air quality data (CPCB AQI st
 - **Baseline ML Models**: Logistic Regression, Decision Tree, Random Forest, XGBoost, LightGBM
 - **LSTM Time-Series Forecasting**: 7-day AQI prediction
 - **Transformer Advisory Generation**: T5/BART fine-tuning for natural language output
+- **Streamlit Dashboard**: Interactive advisory UI (`app/dashboard.py`)
 
 ## Project Structure
 
@@ -19,6 +20,8 @@ air-quality-advisory-generator/
 ├── air_quality_pipeline.py     # Complete 11-step ML pipeline
 ├── lstm_advisory_generator.py  # LSTM forecasting + advisory
 ├── aqi_advisory_generator.py   # Rule-based advisory engine
+├── app/
+│   └── dashboard.py            # Streamlit advisory dashboard
 ├── data/
 │   ├── raw/                    # Original CSVs (gitignored)
 │   └── processed/              # Generated datasets
@@ -48,9 +51,24 @@ pip install transformers torch accelerate streamlit
 # Run complete pipeline
 python air_quality_pipeline.py
 
-# Launch Streamlit demo
-streamlit run app/streamlit_app.py
+# Launch Streamlit dashboard
+streamlit run app/dashboard.py
 ```
+
+## Streamlit Dashboard
+
+Interactive demo for generating demographic-aware health advisories:
+
+1. Set **AQI**, **city**, and **demographic group**
+2. Adjust **temperature**, **humidity**, and **wind speed**
+3. Choose the **dominant pollutant**
+4. Click **GO** to generate a CPCB-compliant advisory
+
+```bash
+streamlit run app/dashboard.py
+```
+
+Opens at `http://localhost:8501` by default.
 
 ## Pipeline Steps
 
@@ -58,8 +76,8 @@ streamlit run app/streamlit_app.py
 2. **Load Dataset** - CSV ingestion with error handling
 3. **EDA Exploration** - Descriptive stats, missing values, class distribution
 4. **Data Visualization** - 6 diagnostic plots (bar, histogram, box, heatmap)
-5. **Clean & Preprocess** - Imputation, outlier removal, scaling, encoding
-6. **Separate X/y** - Feature matrix + target vector isolated
+5. **Clean & Preprocess** - Imputation, leakage-safe features, scaling, encoding
+6. **Separate X/y** - Feature matrix + target vector isolated (AQI excluded)
 7. **Train-Test Split** - 80/20 stratified split with rare class handling
 8. **Baseline Models** - 5 classifiers trained with regularization
 9. **Model Evaluation** - Precision, Recall, F1, Accuracy + macro F1
@@ -100,7 +118,7 @@ Stay indoors with windows closed. Use air purifiers if available.
 - [ ] Synthetic dataset generation (3,000+ pairs)
 - [ ] T5-small fine-tuning for Seq2Seq advisory generation
 - [ ] Weather data integration (IMD/OpenWeather API)
-- [ ] Streamlit web interface
+- [x] Streamlit web interface (`app/dashboard.py`)
 - [ ] GitHub Actions CI/CD
 - [ ] Model deployment (FastAPI/Docker)
 
@@ -125,4 +143,3 @@ If you use this in research, please cite:
   note={CPCB NAQI Standards Compliant}
 }
 ```
-PYEOF
