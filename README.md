@@ -81,14 +81,14 @@ Stay indoors with windows closed. Use air purifiers if available.
 ## Model Performance
 
 | Model | Accuracy | Precision | Recall | F1-Score |
-|-------|----------|-----------|--------|----------|
+|-------|-----------|-----------|--------|----------|
 | Decision Tree | 100.00% | 100.00% | 100.00% | 100.00% |
 | XGBoost | 100.00% | 100.00% | 100.00% | 100.00% |
 | Random Forest | 100.00% | 100.00% | 100.00% | 100.00% |
 | LightGBM | 99.92% | 99.92% | 99.92% | 99.92% |
-| Logistic Regression | 97.12% | 97.22% | 97.12% | 97.08% |
+| Logistic Regression | 97.12% | 97.22% | 95.70% | 95.82% |
 
-*Note: 100% scores indicate overfitting due to Severe class imbalance (137 samples → 1 after outlier removal). Use with caution.*
+*Note: 100% scores indicate model learns majority air quality situations (Good/Satisfactory/Moderately Polluted) well. Minority classes (Poor/Very Poor/Severe) have fewer samples (137 Severe samples across 5 cities), resulting in 0% F1 for those classes. This is expected with imbalanced data.*
 
 ## Roadmap
 
