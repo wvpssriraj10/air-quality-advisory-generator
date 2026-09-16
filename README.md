@@ -20,21 +20,21 @@ air-quality-advisory-generator/
 ├── lstm_advisory_generator.py  # LSTM forecasting + advisory
 ├── aqi_advisory_generator.py   # Rule-based advisory engine
 ├── data/
-│   ├── raw/                    # Original CSV datasets (gitignored)
+│   ├── raw/                    # Original CSVs (gitignored)
 │   └── processed/              # Generated datasets
 ├── outputs/                    # Plots, confusion matrices
 ├── configs/
 │   └── cpcb_standards.yaml     # CPCB breakpoint configuration
 ├── requirements.txt
 ├── .gitignore
-└── README.md
+├── README.md
 ```
 
 ## Quick Start
 
 ```bash
 # Clone and setup
-git clone https://github.com/yourusername/air-quality-advisory-generator.git
+git clone https://github.com/wvpssriraj10/air-quality-advisory-generator.git
 cd air-quality-advisory-generator
 
 # Create conda environment
@@ -55,17 +55,16 @@ streamlit run app/streamlit_app.py
 ## Pipeline Steps
 
 1. **Dataset Understanding** - 5 Indian cities, 12,605 samples
-2. **Data Loading** - CSV ingestion with error handling
-3. **EDA** - Statistics, missing values, class distribution
-4. **Visualization** - 6 diagnostic plots (category dist, histograms, boxplots, correlation heatmap)
-5. **Preprocessing** - Imputation, outlier removal, MinMax scaling, label encoding
-6. **Feature/Target Split** - 8 features → 6 CPCB categories
-7. **Train-Test Split** - 80/20 stratified (fallback for rare classes)
-8. **Baseline Training** - 5 classifiers with class balancing
-9. **Evaluation** - Precision, Recall, F1, Accuracy per model
+2. **Load Dataset** - CSV ingestion with error handling
+3. **EDA Exploration** - Descriptive stats, missing values, class distribution
+4. **Data Visualization** - 6 diagnostic plots (bar, histogram, box, heatmap)
+5. **Clean & Preprocess** - Imputation, outlier removal, scaling, encoding
+6. **Separate X/y** - Feature matrix + target vector isolated
+7. **Train-Test Split** - 80/20 stratified split with rare class handling
+8. **Baseline Models** - 5 classifiers trained with regularization
+9. **Model Evaluation** - Precision, Recall, F1, Accuracy + macro F1
 10. **Confusion Matrices** - Per-model heatmaps with misclassification analysis
-11. **Model Comparison** - Ranked table + per-class metrics
-12. **Advisory Generation** - CPCB-compliant, demographic-specific health advisories
+11. **Model Comparison** - Ranked table + per-class metrics + per-class F1
 
 ## Sample Advisory Output
 
@@ -86,9 +85,9 @@ Stay indoors with windows closed. Use air purifiers if available.
 | XGBoost | 100.00% | 100.00% | 100.00% | 100.00% |
 | Random Forest | 100.00% | 100.00% | 100.00% | 100.00% |
 | LightGBM | 99.92% | 99.92% | 99.92% | 99.92% |
-| Logistic Regression | 97.12% | 97.22% | 95.70% | 95.82% |
+| Logistic Regression | 97.12% | 96.43% | 95.70% | 95.82% |
 
-*Note: 100% scores indicate model learns majority air quality situations (Good/Satisfactory/Moderately Polluted) well. Minority classes (Poor/Very Poor/Severe) have fewer samples (137 Severe samples across 5 cities), resulting in 0% F1 for those classes. This is expected with imbalanced data.*
+**Note**: 100% scores indicate model learns majority air quality situations (Good/Satisfactory/Moderately Polluted) well. Minority classes (Poor/Very Poor/Severe) have fewer samples (137 Severe samples across 5 cities), resulting in 0% F1 for those classes. This is expected with imbalanced data.
 
 ## Roadmap
 
@@ -121,3 +120,4 @@ If you use this in research, please cite:
   note={CPCB NAQI Standards Compliant}
 }
 ```
+PYEOF
