@@ -26,6 +26,8 @@ air-quality-advisory-generator/
 │   ├── raw/                    # Original CSVs (gitignored)
 │   └── processed/              # Generated datasets
 ├── outputs/                    # Plots, confusion matrices
+├── docs/
+│   └── screenshots/            # Dashboard sample screenshots
 ├── configs/
 │   └── cpcb_standards.yaml     # CPCB breakpoint configuration
 ├── requirements.txt
@@ -69,6 +71,16 @@ streamlit run app/dashboard.py
 ```
 
 Opens at `http://localhost:8501` by default.
+
+### Sample Walkthrough
+
+**1. Configure inputs** — choose AQI, city, user group, weather conditions, and dominant pollutant, then click **GO**:
+
+![Dashboard inputs](docs/screenshots/dashboard-inputs.png)
+
+**2. Read the health advisory** — results include AQI category, health impact, pollutant notes, weather context, group-specific advice, and recommended actions:
+
+![Dashboard health advisory results](docs/screenshots/dashboard-results.png)
 
 ## Pipeline Steps
 

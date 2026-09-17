@@ -20,6 +20,8 @@ outputs/*
 !outputs/.gitkeep
 *.png
 *.jpg
+!docs/screenshots/*.png
+!docs/screenshots/*.jpg
 
 # Environment
 .env
