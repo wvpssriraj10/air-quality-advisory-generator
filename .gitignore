@@ -33,6 +33,7 @@ __pycache__/
 *.pyd
 .ipynb_checkpoints/
 *.ipynb
+!NLP Project final code.ipynb
 
 # IDE
 .vscode/
