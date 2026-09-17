@@ -529,8 +529,9 @@ def run_full_pipeline(data_dir, save_dir=None):
 
 
 if __name__ == "__main__":
-    DATA_DIR = r"C:\Users\wsrir\OneDrive\Desktop\coding bhai\NLP project"
-    SAVE_DIR = r"C:\Users\wsrir\OneDrive\Desktop\coding bhai\NLP project\outputs"
+    ROOT = Path(__file__).resolve().parent
+    DATA_DIR = ROOT / "data" / "raw"
+    SAVE_DIR = ROOT / "outputs"
 
-    Path(SAVE_DIR).mkdir(exist_ok=True)
+    SAVE_DIR.mkdir(exist_ok=True)
     run_full_pipeline(DATA_DIR, SAVE_DIR)

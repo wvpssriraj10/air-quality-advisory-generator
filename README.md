@@ -124,9 +124,11 @@ Stay indoors with windows closed. Use air purifiers if available.
 
 ## Data Source
 
+- Place CPCB CSVs in `data/raw/` (gitignored): `{City}_AQI_Dataset.csv`
 - **CPCB Air Quality Data** (2018): Daily AQI & pollutant concentrations for 5 major Indian cities
 - **Parameters**: AQI, PM2.5, PM10, NO2, SO2, CO, O3
 - **Cities**: Bangalore, Chennai, Delhi, Hyderabad, Mumbai
+- Generated plots land in `outputs/`; processed datasets in `data/processed/`
 
 ## License
 

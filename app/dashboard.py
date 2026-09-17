@@ -33,15 +33,18 @@ def generate_advisory(aqi, category, pollutant, temp, hum, wind, city, group):
 
 st.set_page_config(page_title="AQI Advisory", layout="centered", initial_sidebar_state="collapsed")
 
-# Minimal CSS to reduce height
 st.markdown("""
 <style>
-    .stSlider > div > div { height: 20px; }
-    .stNumberInput > div > div > div > input { height: 20px; }
-    .stSelectbox > div > div > div { height: 30px; }
-    .stMarkdown { font-size: 80%; }
+    .stSelectbox [data-baseweb="select"] > div {
+        min-height: 38px;
+        padding-top: 4px;
+        padding-bottom: 4px;
+    }
+    .stSelectbox [data-baseweb="select"] span {
+        line-height: 1.4;
+        overflow: visible;
+    }
     .stSuccess { font-size: 100%; padding: 10px; }
-    .viewerMarkdown { font-size: 100%; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -49,17 +52,23 @@ st.title("🌫️ Air Quality Health Advisory")
 
 with st.form("f", clear_on_submit=False):
     c1, c2, c3 = st.columns(3)
-    with c1: aqi = st.slider("AQI", 0, 500, 150, label_visibility="collapsed")
-    with c2: city = st.selectbox("City", ["Delhi","Mumbai","Bangalore","Chennai","Hyderabad"], label_visibility="collapsed")
-    with c3: group = st.selectbox("Group", ["General","Children","Elderly","Sensitive","Asthma"], label_visibility="collapsed")
-    
+    with c1:
+        aqi = st.slider("AQI (0–500)", 0, 500, 150)
+    with c2:
+        city = st.selectbox("City", ["Delhi", "Mumbai", "Bangalore", "Chennai", "Hyderabad"])
+    with c3:
+        group = st.selectbox("User Group", ["General", "Children", "Elderly", "Sensitive", "Asthma"])
+
     c4, c5, c5b = st.columns(3)
-    with c4: temp = st.slider("T", 10, 45, 30, label_visibility="collapsed")
-    with c5: hum = st.slider("H%", 20, 95, 60, label_visibility="collapsed")
-    with c5b: wind = st.slider("W", 0, 30, 8, label_visibility="collapsed")
-    
-    dom = st.selectbox("Pollutant", ["PM2.5","PM10","NO2","SO2","CO","O3"], label_visibility="collapsed")
-    
+    with c4:
+        temp = st.slider("Temperature (°C)", 10, 45, 30)
+    with c5:
+        hum = st.slider("Humidity (%)", 20, 95, 60)
+    with c5b:
+        wind = st.slider("Wind Speed (km/h)", 0, 30, 8)
+
+    dom = st.selectbox("Dominant Pollutant", ["PM2.5", "PM10", "NO2", "SO2", "CO", "O3"])
+
     submitted = st.form_submit_button("GO", use_container_width=True)
 
 if submitted:

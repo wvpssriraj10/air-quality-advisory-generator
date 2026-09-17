@@ -4,6 +4,8 @@ NLP-Based Air Quality Health Advisory Generator (India)
 Converts CPCB AQI and meteorological metrics into context-aware health advisories.
 """
 
+from pathlib import Path
+
 import pandas as pd
 import numpy as np
 
@@ -213,7 +215,7 @@ def process_dataset(filepath, target_group="General"):
 
 def main():
     """Main entry point - process all dataset files."""
-    data_dir = "C:\\Users\\wsrir\\OneDrive\\Desktop\\coding bhai\\NLP project"
+    data_dir = Path(__file__).resolve().parent / "data" / "raw"
 
     cities = ["Bangalore", "Chennai", "Delhi", "Hyderabad", "Mumbai"]
     target_groups = ["General", "Children", "Elderly", "Sensitive", "Asthma"]
@@ -224,7 +226,7 @@ def main():
     print()
 
     for city in cities:
-        csv_file = f"{data_dir}\\{city}_AQI_Dataset.csv"
+        csv_file = data_dir / f"{city}_AQI_Dataset.csv"
         try:
             df = process_dataset(csv_file, target_group="General")
             print(f"\n=== {city} AQI Data ===")

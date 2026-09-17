@@ -5,6 +5,8 @@ Combines LSTM time-series forecasting of pollutant concentrations with
 advisory generation - fixed version without TensorFlow dependency.
 """
 
+from pathlib import Path
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -362,13 +364,12 @@ if __name__ == "__main__":
     print("=" * 70)
     print()
     
-    # Example: Process Delhi data
-    data_dir = "C:\\Users\\wsrir\\OneDrive\\Desktop\\coding bhai\\NLP project"
+    data_dir = Path(__file__).resolve().parent / "data" / "raw"
     
     cities = ["Bangalore", "Chennai", "Delhi", "Hyderabad", "Mumbai"]
     
     for city in cities:
-        csv_file = f"{data_dir}\\{city}_AQI_Dataset.csv"
+        csv_file = data_dir / f"{city}_AQI_Dataset.csv"
         try:
             print(f"\n{'='*60}")
             print(f"Processing: {city.upper()}")

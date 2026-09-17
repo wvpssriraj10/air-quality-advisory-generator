@@ -1,7 +1,8 @@
-# Data
-data/raw/*.csv
-data/processed/*.json
-data/processed/*.parquet
+﻿# Data
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
 *.parquet
 
 # Models (large files - use Git LFS or DVC)
@@ -15,9 +16,8 @@ models/**/*.joblib
 *.pt
 
 # Outputs
-outputs/*.png
-outputs/*.jpg
-outputs/*.pdf
+outputs/*
+!outputs/.gitkeep
 *.png
 *.jpg
 
