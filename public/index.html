@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101512">
+  <meta name="description" content="Personalized air quality health advisories based on AQI, weather, and user group.">
+  <title>Air Quality Health Advisory</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #101512;
+      --panel: #191f1b;
+      --panel-raised: #202722;
+      --line: rgba(240, 247, 240, .13);
+      --text: #f1f5f0;
+      --muted: #b5c0b8;
+      --mint: #8ee0b5;
+      --blue: #9ac9e9;
+      --good: #63d79e;
+      --satisfactory: #86dba8;
+      --moderate: #f4c85f;
+      --poor: #f59b5b;
+      --very-poor: #f46a68;
+      --severe: #ed5252;
+      font-family: "Segoe UI", "Trebuchet MS", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      margin: 0;
+      color: var(--text);
+      background:
+        radial-gradient(ellipse at 85% 0%, rgba(62, 123, 91, .19), transparent 32rem),
+        radial-gradient(ellipse at 0% 92%, rgba(78, 124, 159, .13), transparent 28rem),
+        var(--bg);
+    }
+    main { width: min(100% - 2rem, 940px); margin: 0 auto; padding: 2.6rem 0 4rem; }
+    .hero { display: flex; align-items: flex-end; justify-content: space-between; gap: 2rem; margin-bottom: 1.6rem; }
+    .kicker { margin: 0 0 .6rem; color: var(--mint); font-size: .78rem; font-weight: 750; letter-spacing: .12em; }
+    h1 { margin: 0; max-width: 680px; font-size: clamp(2rem, 5vw, 3.25rem); line-height: 1.04; }
+    .intro { max-width: 650px; margin: .8rem 0 0; color: var(--muted); font-size: .96rem; line-height: 1.65; }
+    .standard { flex: 0 0 auto; padding: .65rem .85rem; border: 1px solid rgba(142, 224, 181, .34); border-radius: 999px; color: var(--mint); background: rgba(142, 224, 181, .08); font-size: .75rem; font-weight: 700; }
+    .panel { border: 1px solid var(--line); border-radius: 14px; background: linear-gradient(145deg, rgba(29, 36, 31, .98), rgba(23, 29, 25, .98)); box-shadow: 0 18px 50px rgba(0, 0, 0, .2); }
+    form { padding: 1.4rem; }
+    .section-title { margin: 0 0 1.1rem; color: #e5ece6; font-size: .82rem; font-weight: 750; letter-spacing: .08em; }
+    .section-title span { margin-right: .55rem; color: var(--mint); }
+    .fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.15rem 1.35rem; }
+    .field { min-width: 0; }
+    label { display: block; margin-bottom: .5rem; color: #d6dfd8; font-size: .86rem; font-weight: 650; }
+    input, select {
+      width: 100%;
+      min-height: 46px;
+      border: 1px solid #3a453d;
+      border-radius: 9px;
+      padding: .65rem .75rem;
+      color: var(--text);
+      background: #121814;
+      font: inherit;
+    }
+    input:focus, select:focus { outline: 2px solid var(--mint); outline-offset: 2px; }
+    input[type="range"] { min-height: 46px; padding: 0 .15rem; accent-color: var(--mint); }
+    output { display: inline-block; min-width: 2.2rem; margin-left: .4rem; color: var(--mint); font-variant-numeric: tabular-nums; }
+    .range-label { display: flex; align-items: center; }
+    .pollutant-field { margin-top: 1.1rem; }
+    button {
+      width: 100%;
+      min-height: 48px;
+      margin-top: 1.25rem;
+      border: 0;
+      border-radius: 9px;
+      color: #102017;
+      background: var(--mint);
+      box-shadow: 0 8px 24px rgba(56, 172, 126, .16);
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    button:hover { background: #a4edc6; }
+    button:focus-visible { outline: 2px solid white; outline-offset: 3px; }
+    .result { margin-top: 1.2rem; overflow: hidden; }
+    .placeholder { padding: 3.6rem 1.5rem; text-align: center; }
+    .placeholder-mark { margin-bottom: .8rem; color: var(--blue); font-size: 2.2rem; }
+    .placeholder h2 { margin: 0 0 .5rem; font-size: 1.15rem; }
+    .placeholder p { max-width: 500px; margin: auto; color: var(--muted); font-size: .92rem; line-height: 1.6; }
+    .result-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1.4rem 1.5rem; border-bottom: 1px solid var(--line); background: linear-gradient(100deg, rgba(42, 102, 73, .2), rgba(25, 32, 27, .15)); }
+    .result-header h2 { margin: 0; font-size: 1.6rem; }
+    .result-header p { margin: .35rem 0 0; color: var(--muted); font-size: .88rem; }
+    .badge { flex: 0 0 auto; padding: .6rem .85rem; border: 1px solid currentColor; border-radius: 999px; font-size: .85rem; font-weight: 750; }
+    .aqi-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, 1fr); align-items: center; gap: 1.4rem; padding: 1.5rem; border-bottom: 1px solid var(--line); }
+    .aqi-number { font-size: 3rem; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+    .aqi-number small { margin-left: .3rem; color: var(--muted); font-size: .8rem; font-weight: 600; }
+    .scale { display: flex; justify-content: space-between; gap: .25rem; margin-top: .6rem; color: #aeb8b0; font-size: .64rem; }
+    .scale span { text-align: center; }
+    .bar-wrap { position: relative; padding-top: .25rem; }
+    .bar { display: grid; grid-template-columns: repeat(6, 1fr); gap: 2px; height: 12px; border-radius: 99px; }
+    .bar span:first-child { border-radius: 99px 0 0 99px; }
+    .bar span:last-child { border-radius: 0 99px 99px 0; }
+    .marker { position: absolute; top: -.25rem; width: 11px; height: 26px; border: 3px solid #f1f5f0; border-radius: 6px; background: var(--bg); box-shadow: 0 0 0 2px rgba(0, 0, 0, .3); transform: translateX(-50%); }
+    .callout { margin: 1.1rem 1.5rem 0; padding: .9rem 1rem; border-left: 4px solid var(--accent); border-radius: 0 9px 9px 0; background: color-mix(in srgb, var(--accent) 12%, transparent); }
+    .callout strong { display: block; margin-bottom: .25rem; font-size: .84rem; }
+    .callout p, .detail p, .weather-list { margin: 0; color: var(--muted); font-size: .92rem; line-height: 1.6; }
+    .details { padding: .8rem 1.5rem 1.2rem; }
+    .detail { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 1rem; align-items: start; padding: 1rem 0; border-bottom: 1px solid var(--line); }
+    .detail:last-child { border-bottom: 0; }
+    .detail-icon { display: grid; width: 40px; height: 40px; place-items: center; border-radius: 10px; color: #c9e8fb; background: rgba(105, 183, 239, .12); font-size: 1.15rem; }
+    .detail h3 { margin: .15rem 0 .35rem; font-size: .92rem; }
+    .weather-list { padding-left: 1.1rem; }
+    .weather-list li + li { margin-top: .25rem; }
+    [hidden] { display: none !important; }
+    @media (max-width: 680px) {
+      main { width: min(100% - 1.25rem, 940px); padding-top: 1.3rem; }
+      .hero { align-items: flex-start; flex-direction: column; gap: 1rem; margin-bottom: 1.2rem; }
+      .fields { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+      form { padding: 1rem; }
+      .result-header { align-items: flex-start; flex-direction: column; padding: 1.15rem; }
+      .aqi-row { grid-template-columns: 1fr; gap: 1rem; padding: 1.15rem; }
+      .callout { margin: 1rem 1.15rem 0; }
+      .details { padding: .6rem 1.15rem 1rem; }
+    }
+    @media (max-width: 420px) {
+      main { width: calc(100% - 1rem); }
+      .fields { grid-template-columns: 1fr; }
+      .result-header h2 { font-size: 1.35rem; }
+      .scale { font-size: .57rem; }
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      main { animation: arrive .45s ease-out both; }
+      @keyframes arrive { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header class="hero">
+      <div>
+        <p class="kicker">CPCB AQI STANDARD</p>
+        <h1>Air Quality Health Advisory</h1>
+        <p class="intro">Turn AQI and environmental conditions into clear, demographic-aware guidance for safer everyday decisions.</p>
+      </div>
+      <div class="standard">CPCB · NAQI</div>
+    </header>
+
+    <form class="panel" id="advisory-form">
+      <h2 class="section-title"><span>01</span> ENVIRONMENTAL PROFILE</h2>
+      <div class="fields">
+        <div class="field">
+          <label class="range-label" for="aqi">AQI <output id="aqi-value" for="aqi">150</output></label>
+          <input id="aqi" name="aqi" type="range" min="0" max="500" value="150">
+        </div>
+        <div class="field">
+          <label for="city">City</label>
+          <select id="city" name="city">
+            <option>Delhi</option><option>Mumbai</option><option>Bangalore</option><option>Chennai</option><option>Hyderabad</option><option>Madrid</option><option>Beijing</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="group">User group</label>
+          <select id="group" name="group">
+            <option>General</option><option>Children</option><option>Elderly</option><option>Sensitive</option><option>Asthma</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="range-label" for="temp">Temperature (°C) <output id="temp-value" for="temp">30</output></label>
+          <input id="temp" name="temp" type="range" min="10" max="45" value="30">
+        </div>
+        <div class="field">
+          <label class="range-label" for="humidity">Humidity (%) <output id="humidity-value" for="humidity">60</output></label>
+          <input id="humidity" name="humidity" type="range" min="20" max="95" value="60">
+        </div>
+        <div class="field">
+          <label class="range-label" for="wind">Wind speed (km/h) <output id="wind-value" for="wind">8</output></label>
+          <input id="wind" name="wind" type="range" min="0" max="30" value="8">
+        </div>
+      </div>
+      <div class="field pollutant-field">
+        <label for="pollutant">Dominant pollutant</label>
+        <select id="pollutant" name="pollutant">
+          <option>PM2.5</option><option>PM10</option><option>NO2</option><option>SO2</option><option>CO</option><option>O3</option>
+        </select>
+      </div>
+      <button type="submit">Generate advisory</button>
+    </form>
+
+    <section class="panel result" aria-live="polite" aria-label="Health advisory">
+      <div class="placeholder" id="placeholder">
+        <div class="placeholder-mark" aria-hidden="true">◌</div>
+        <h2>Your advisory will appear here</h2>
+        <p>Choose the air-quality conditions above and generate a clear, personalized health recommendation.</p>
+      </div>
+      <div id="advisory" hidden></div>
+    </section>
+  </main>
+
+  <script>
+    const categories = [
+      { name: "Good", max: 50, color: "#63d79e", impact: "Minimal health impact; safe for outdoor activity.", advice: "No restrictions. Enjoy outdoor activities safely." },
+      { name: "Satisfactory", max: 100, color: "#86dba8", impact: "May cause minor breathing discomfort to sensitive people.", advice: "Reduce intense outdoor activity if you have respiratory sensitivities." },
+      { name: "Moderately Polluted", max: 200, color: "#f4c85f", impact: "Discomfort to people with lung/heart disease, children, and older adults.", advice: "Reduce prolonged exertion. Keep windows closed if dust is suspected." },
+      { name: "Poor", max: 300, color: "#f59b5b", impact: "Breathing discomfort to most people on prolonged exposure.", advice: "Avoid outdoor activities. Use N95 masks if going outside is necessary." },
+      { name: "Very Poor", max: 400, color: "#f46a68", impact: "Respiratory illness on prolonged exposure; severe impact on sensitive groups.", advice: "Stay indoors with windows closed. Use air purifiers if available." },
+      { name: "Severe", max: 500, color: "#ed5252", impact: "Affects healthy people and seriously impacts those with pre-existing conditions.", advice: "Remain indoors. Use high-efficiency air filters. Seek medical attention if symptoms appear." }
+    ];
+    const pollutantNotes = {
+      "PM2.5": "Fine particles that penetrate deep into lungs and can enter the bloodstream.",
+      PM10: "Coarse particles that irritate the eyes, nose, throat, and upper airways.",
+      NO2: "Nitrogen dioxide linked to airway inflammation and worsened asthma symptoms.",
+      SO2: "Sulfur dioxide that can trigger breathing difficulty, especially in sensitive groups.",
+      CO: "Carbon monoxide reduces oxygen delivery; high levels are dangerous indoors and outdoors.",
+      O3: "Ground-level ozone can irritate airways and reduce lung function during outdoor activity."
+    };
+    const groupAdvice = {
+      General: ["Advice for the general public", "Healthy adults can follow the general recommendation for the current AQI category."],
+      Children: ["Advice for children", "Children should limit outdoor play, avoid heavy activity, and stay in well-ventilated indoor spaces."],
+      Elderly: ["Advice for older adults", "Elderly individuals should avoid prolonged outdoor exposure and keep medications ready."],
+      Sensitive: ["Advice for people with respiratory or heart conditions", "People with respiratory or heart conditions should stay indoors and use air purifiers if available."],
+      Asthma: ["Advice for people with asthma", "Asthma patients should carry inhalers, avoid outdoor exercise, and keep windows closed."]
+    };
+
+    const form = document.querySelector("#advisory-form");
+    for (const id of ["aqi", "temp", "humidity", "wind"]) {
+      const input = document.getElementById(id);
+      input.addEventListener("input", () => { document.getElementById(`${id}-value`).value = input.value; });
+    }
+
+    function weatherNotes(temp, humidity, wind) {
+      const notes = [];
+      if (temp > 35) notes.push(`High temperature (${temp}°C) increases heat stress and respiratory strain.`);
+      else if (temp < 15) notes.push(`Cool temperature (${temp}°C) — still limit outdoor exertion if AQI is elevated.`);
+      else notes.push(`Temperature is moderate at ${temp}°C.`);
+      if (humidity > 70) notes.push(`High humidity (${humidity}%) can aggravate breathing discomfort.`);
+      else if (humidity < 30) notes.push(`Low humidity (${humidity}%) may dry airways; stay hydrated.`);
+      else notes.push(`Humidity is moderate at ${humidity}%.`);
+      if (wind < 5) notes.push(`Low wind (${wind} km/h) can allow pollutants to accumulate near the ground.`);
+      else notes.push(`Wind speed of ${wind} km/h may help disperse some pollutants.`);
+      return notes;
+    }
+
+    function detail(icon, title, content, isList = false) {
+      const body = isList ? `<ul class="weather-list">${content.map(item => `<li>${item}</li>`).join("")}</ul>` : `<p>${content}</p>`;
+      return `<div class="detail"><div class="detail-icon" aria-hidden="true">${icon}</div><div><h3>${title}</h3>${body}</div></div>`;
+    }
+
+    form.addEventListener("submit", event => {
+      event.preventDefault();
+      const aqi = Number(form.elements.aqi.value);
+      const temp = Number(form.elements.temp.value);
+      const humidity = Number(form.elements.humidity.value);
+      const wind = Number(form.elements.wind.value);
+      const city = form.elements.city.value;
+      const group = form.elements.group.value;
+      const pollutant = form.elements.pollutant.value;
+      const category = categories.find(item => aqi <= item.max);
+      const groupInfo = groupAdvice[group];
+      const colors = categories.map(item => item.color);
+      const marker = Math.max(0, Math.min(100, aqi / 5));
+      const notes = weatherNotes(temp, humidity, wind);
+
+      document.querySelector("#placeholder").hidden = true;
+      const advisory = document.querySelector("#advisory");
+      advisory.hidden = false;
+      advisory.innerHTML = `
+        <header class="result-header">
+          <div><h2>Health Advisory · ${city}</h2><p>Context-aware guidance generated from the selected environmental profile.</p></div>
+          <div class="badge" style="color:${category.color}">${category.name}</div>
+        </header>
+        <div class="aqi-row">
+          <div><div class="aqi-number">${aqi}<small>AQI</small></div><div class="scale"><span>Good</span><span>Satisfactory</span><span>Moderately polluted</span><span>Poor</span><span>Very poor</span><span>Severe</span></div></div>
+          <div class="bar-wrap"><div class="bar" role="img" aria-label="AQI ${aqi} on the CPCB scale">${colors.map(color => `<span style="background:${color}"></span>`).join("")}</div><span class="marker" style="left:${marker}%"></span><div class="scale"><span>0</span><span>100</span><span>200</span><span>300</span><span>400</span><span>500</span></div></div>
+        </div>
+        <div class="callout" style="--accent:${category.color}"><strong>Recommended action</strong><p>${category.advice}</p></div>
+        <div class="details">
+          ${detail("✦", "Health impact", category.impact)}
+          ${detail("◌", `Dominant pollutant · ${pollutant}`, pollutantNotes[pollutant])}
+          ${detail("☁", "Weather context", notes, true)}
+          ${detail("◎", groupInfo[0], groupInfo[1])}
+        </div>`;
+    });
+  </script>
+</body>
+</html>
