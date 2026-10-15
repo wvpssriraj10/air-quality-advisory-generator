@@ -43,7 +43,7 @@ An air-quality analysis project that combines a CPCB-aligned advisory dashboard 
 
 The static dashboard entry point is `public/index.html`. The repository is configured for static hosting with Vercel; `vercel.json` sets `public` as the output directory. The page runs its advisory calculations in the visitor's browser and needs no Python server, database, API key, or model download.
 
-**Public website:** Not published yet. No Vercel deployment has been created from this repository, so there is no live URL to list. Add the assigned `*.vercel.app` address here after the first deployment.
+**Live website:** [https://air-quality-advisory-generator-self.vercel.app/](https://air-quality-advisory-generator-self.vercel.app/)
 
 For the Vercel project settings, use the repository root, the **Other** framework preset, no build or install command, and `public` as the output directory. Import the GitHub repository as a new Vercel project. Subsequent pushes to its connected production branch will trigger redeployments.
 
