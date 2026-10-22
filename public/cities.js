@@ -1,0 +1,17 @@
+const cityGroups = {
+  India: [
+    "Delhi", "Mumbai", "Bangalore", "Chennai", "Hyderabad",
+    "Agartala", "Agra", "Ahmedabad", "Ahmednagar", "Aizawl", "Ajmer", "Akola", "Alwar", "Amaravati", "Amravati", "Amritsar", "Anantapur", "Angul", "Ankleshwar", "Araria", "Ariyalur", "Arrah", "Asansol", "Aurangabad", "Baddi", "Badlapur", "Baghpat", "Balasore", "Banswara", "Baran", "Barbil", "Bareilly", "Baripada", "Barmer", "Barrackpore", "Bathinda", "Begusarai", "Belapur", "Bengaluru", "Bettiah", "Bhagalpur", "Bharatpur", "Bhilai", "Bhilwara", "Bhiwadi", "Bhiwandi", "Bhopal", "Bhubaneswar", "Bihar Sharif", "Bikaner", "Bilaspur", "Bileipada", "Boisar", "Brajrajnagar", "Bulandshahr", "Bundi", "Buxar", "Byasanagar", "Byrnihat", "Chamarajanagar", "Chandigarh", "Chandrapur", "Charkhi Dadri", "Chengalpattu", "Chhal", "Chhapra", "Chikkaballapur", "Chikkamagaluru", "Chittoor", "Chittorgarh", "Churu", "Coimbatore", "Cuddalore", "Cuttack", "Damoh", "Dausa", "Davanagere", "Dehradun", "Dewas", "Dhanbad", "Dharwad", "Dholpur", "Dhule", "Dindigul", "Dungarpur", "Durgapur", "Eloor", "Faridabad", "Firozabad", "Gadag", "Gandhinagar", "Gangtok", "Gaya", "Ghaziabad", "Gorakhpur", "Greater Noida", "Gummidipoondi", "Gurugram", "Guwahati", "Gwalior", "Hajipur", "Haldia", "Hanumangarh", "Hapur", "Hassan", "Haveri", "Howrah", "Hubballi", "Imphal", "Indore", "Jabalpur", "Jaipur", "Jaisalmer", "Jalandhar", "Jalgaon", "Jalna", "Jalore", "Jhalawar", "Jhansi", "Jhunjhunu", "Jodhpur", "Kadapa", "Kalaburagi", "Kalyan", "Kanchipuram", "Kannur", "Kanpur", "Karauli", "Karur", "Karwar", "Kashipur", "Katihar", "Katni", "Keonjhar", "Khanna", "Khurja", "Kishanganj", "Kohima", "Kolar", "Kolhapur", "Kolkata", "Kollam", "Korba", "Kota", "Kunjemura", "Latur", "Lucknow", "Ludhiana", "Madikeri", "Madurai", "Mahad", "Maihar", "Malegaon", "Mandi Gobindgarh", "Mandideep", "Mangalore", "Manguraha", "Meerut", "Milupara", "Mira-Bhayandar", "Moradabad", "Motihari", "Munger", "Muzaffarnagar", "Muzaffarpur", "Mysuru", "Nagaon", "Nagapattinam", "Nagaur", "Nagpur", "Naharlagun", "Nalbari", "Nanded", "Nashik", "Navi Mumbai", "Nayagarh", "Noida", "Ooty", "Pali", "Palkalaiperur", "Panchgaon", "Parbhani", "Patiala", "Patna", "Perundurai", "Pimpri-Chinchwad", "Pithampur", "Pratapgarh", "Prayagraj", "Puducherry", "Pudukottai", "Pune", "Purnia", "Raipur", "Rairangpur", "Rajamahendravaram", "Rajgir", "Rajsamand", "Ramanagara", "Ramanathapuram", "Ranipet", "Ratlam", "Rishikesh", "Rourkela", "Rupnagar", "Sagar", "Saharsa", "Salem", "Samastipur", "Sangli", "Sasaram", "Satna", "Shillong", "Shivamogga", "Sikar", "Silchar", "Siliguri", "Singrauli", "Sirohi", "Sivasagar", "Siwan", "Solapur", "Sri Ganganagar", "Sri Vijaya Puram", "Srinagar", "Suakati", "Surat", "Talcher", "Tensa", "Thane", "Thanjavur", "Thiruvananthapuram", "Thoothukudi", "Thrissur", "Tirumala", "Tirunelveli", "Tirupati", "Tirupur", "Tonk", "Tumakuru", "Tumidih", "Udaipur", "Udupi", "Ujjain", "Ulhasnagar", "Vapi", "Varanasi", "Vatva", "Vellore", "Vijayapura", "Vijayawada", "Virar", "Virudhunagar", "Visakhapatnam", "Vrindavan", "Yadgir"
+  ],
+  International: ["Beijing", "Madrid"]
+};
+
+const citySelect = document.querySelector("#city");
+for (const [groupName, cities] of Object.entries(cityGroups)) {
+  const group = document.createElement("optgroup");
+  group.label = groupName;
+  for (const city of cities) {
+    group.append(new Option(city, city));
+  }
+  citySelect.append(group);
+}
